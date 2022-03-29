@@ -44,7 +44,6 @@ func main() {
 	fmt.Println(s3)
 	//同一个作用域中不能重复声明同名的变量
 	//匿名变量 _
-	forf()
 }
 
 //常量 定义之后就不能进行修改了 const
@@ -249,4 +248,23 @@ func forf() {
 		fmt.Println(i, v)
 		fmt.Printf("%d %c\n", i, v)
 	}
+	//break continue switch 都和其他语言相同
+}
+
+//位运算
+func bit() {
+	//& 与
+	//| 或
+	//^ 异或
+	//<< 左移
+	//>> 右移
+	//&^ 按位取反
+	a := 1                            //0000 0001
+	b := 2                            //0000 0010
+	fmt.Printf("%d %b\n", a&b, a&b)   //0000 0000 按位与
+	fmt.Printf("%d %b\n", a|b, a|b)   //0000 0011 按位或
+	fmt.Printf("%d %b\n", a^b, a^b)   //0000 0011 按位异或 两位不一样则为1一样则为0
+	fmt.Printf("%d %b\n", a<<1, a<<1) //0000 0010 将二进制位左移一位
+	fmt.Printf("%d %b\n", a>>1, a>>1) //0000 0000 将二进制位右移一位
+	fmt.Printf("%d %b\n", a&^b, a&^b) //0000 0001 a&b^b 按位取反
 }
