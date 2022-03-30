@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	knowledege "learn/knowledege/other"
 	"strings"
 )
 
@@ -44,6 +45,7 @@ func main() {
 	fmt.Println(s3)
 	//同一个作用域中不能重复声明同名的变量
 	//匿名变量 _
+	knowledege.Function()
 }
 
 //常量 定义之后就不能进行修改了 const

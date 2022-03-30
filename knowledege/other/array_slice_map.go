@@ -1,6 +1,8 @@
-package main
+package knowledege
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func knowledege() {
 
@@ -39,6 +41,9 @@ func array() {
 	//因为是值类型所以可以使用 == 和 != 来进行比较
 	fmt.Println(a12 == a11)
 }
+
+//在go中数组本事就是值类型 所以在传参数和赋值的时候都是进行拷贝
+//而slice则是引用 相当于指针 传参数和赋值的时候都是进行指针的传递
 func slice() {
 	arr3 := [5]int{1: 1, 3: 2}
 	//----------------------------------------------------------
@@ -117,7 +122,7 @@ func newMake() {
 	//new很少用 一般用来给基本数据类型申请内存string int  返回的是对应类型的指针 *string *int
 }
 
-//map
+//map 也是引用类型 默认传递的就是指针
 func mmap() {
 	//ma是引用类型 所以必须先初始化才能使用
 	//var m map[string]int      //没有分配内存 nil 这个时候不能使用
@@ -160,15 +165,3 @@ func mmap() {
 }
 
 //函数
-func function() {
-	/*func 函数名[范型](参数 参数类型)(返回值 返回值类型){
-		 函数体
-	}
-	返回值可以命名也可以不命名 命名的时候可以直接return 返回值
-	多个参数类型相同时 可以简写
-	可变长参数
-	func test(arg1 string, arg2...int){}
-	表示arg2可以传多个int值
-	可变长参数必须放在最后
-	*/
-}
