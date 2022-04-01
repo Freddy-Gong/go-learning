@@ -1,0 +1,170 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"sort"
+	"unicode"
+)
+
+func main() {
+	work()
+}
+
+//打印9*9乘法表
+func homewoke1() {
+	for i := 1; i < 9; i++ {
+		for j := 1; j <= i; j++ {
+			fmt.Printf("%d*%d=%d,", i, j, i*j)
+		}
+		fmt.Println()
+	}
+}
+
+//两数之和
+func twoSum(target int) (left, right int) {
+	a := [...]int{1, 3, 5, 7, 8}
+	l := 0
+	r := len(a) - 1
+	for l < r {
+		if a[l]+a[r] == target {
+			return l, r
+		} else if a[l]+a[r] > target {
+			r--
+		} else {
+			l++
+		}
+	}
+	return 0, 0
+}
+
+//slice练习题
+func sliceTest() {
+	a := make([]int, 5, 10)
+	for i := 0; i < len(a); i++ {
+		a = append(a, i)
+	}
+	fmt.Println(a, cap(a)) //[0 0 0 0 0 1 2 3 4 5 6 7 8 9]
+
+	sort.Ints(a[:]) //对切片进行排序
+
+}
+
+//判断字符串汉字的数量
+//便利一个带有汉字的字符串的时候 不能直接通过索引便利 因为索引是字节数 一个汉字占三个字节，所以不能
+//要先切成slice，再便利
+func countHanzi() {
+	//如何判断一个字符是汉字
+	s := "我是汉字hello"
+	for i, v := range s {
+		//如何判断一个字符是汉字
+		if unicode.Is(unicode.Han, v) {
+			fmt.Println(i, v)
+		}
+	}
+}
+
+func pop(slice []int) []int {
+	if len(slice) > 0 {
+		return slice[1:]
+	} else {
+		return make([]int, 0)
+	}
+}
+
+var (
+	coins = 50
+	users = []string{
+		"Matthew", "Sarah", "Augustus", "Heidi", "Emilie", "Peter", "Giana", "Adriano", "Aaron", "Elizabeth",
+	}
+	distribution = make(map[string]int, len(users))
+)
+
+//分金币
+func dispatchCoin() (left int) {
+	left = coins
+	rule := map[uint8]int{
+		byte('e'): 1,
+		byte('E'): 1,
+		byte('i'): 2,
+		byte('I'): 2,
+		byte('o'): 3,
+		byte('O'): 3,
+		byte('u'): 4,
+		byte('U'): 4,
+	}
+	for _, item := range users {
+		distribution[item] = 0
+		for _, word := range item {
+			if v, ok := rule[uint8(word)]; ok {
+				distribution[item] += v
+				left -= v
+			}
+		}
+	}
+	fmt.Println(distribution, left)
+	return
+}
+
+//学生管理系统
+type Manager struct {
+	students map[int]Student
+}
+type Student struct {
+	id   int
+	name string
+}
+
+func (m *Manager) NewStudent(id int, name string) Student {
+	return Student{
+		id,
+		name,
+	}
+}
+func (m *Manager) ShowAll() {
+	for k, v := range m.students {
+		fmt.Printf("%d:%v\n", k, v)
+	}
+}
+func (m *Manager) AddStudent(id int, name string) {
+	newStudent := m.NewStudent(id, name)
+	m.students[id] = newStudent
+}
+func (m *Manager) DeleteStudent(id int) {
+	delete(m.students, id)
+}
+func work() {
+	manager := Manager{
+		students: make(map[int]Student, 10),
+	}
+	for {
+		fmt.Print(`
+欢迎来到学生管理系统，
+1. 查看全部学生
+2. 添加学生
+3. 删除学生
+4. 退出
+`)
+		var chose int
+		fmt.Scan(&chose)
+		switch chose {
+		case 1:
+			manager.ShowAll()
+		case 2:
+			fmt.Println("请输入学生的id和name")
+			var id int
+			var name string
+			fmt.Scanln(&id, &name)
+			manager.AddStudent(id, name)
+		case 3:
+			fmt.Println("请输入学生的id")
+			var id int
+			fmt.Scanln(&id)
+			manager.DeleteStudent(id)
+		case 4:
+			os.Exit(1)
+		default:
+			fmt.Println("请输入正确的数字")
+		}
+	}
+}
