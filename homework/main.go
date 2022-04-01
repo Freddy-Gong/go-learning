@@ -108,14 +108,19 @@ func dispatchCoin() (left int) {
 
 //学生管理系统
 type Manager struct {
-	students map[int]Student
+	//students  map[int]Student
+	//下面使用引用的方式在map中使用结构体更好 更方便
+	//因为如果是上面那种值的写法 你不能通过students[id].name = xxx 直接修改 因为你修改的是一个拷贝
+	//而使用引用的写法却可以直接修改 students[id].name = xxx 这样修改的才是原本的值
+	students  map[int]*Student
+	StudenNum int
 }
 type Student struct {
 	id   int
 	name string
 }
 
-func (m *Manager) NewStudent(id int, name string) Student {
+func (m *Manager) newStudent(id int, name string) Student {
 	return Student{
 		id,
 		name,
@@ -127,15 +132,24 @@ func (m *Manager) ShowAll() {
 	}
 }
 func (m *Manager) AddStudent(id int, name string) {
-	newStudent := m.NewStudent(id, name)
-	m.students[id] = newStudent
+	newStudent := m.newStudent(id, name)
+	m.students[id] = &newStudent
+	m.StudenNum++
+}
+func (m *Manager) EditStudent(id int, name string) {
+	_, ok := m.students[id]
+	if ok == false {
+		fmt.Println("查无此人")
+	}
+	m.students[id].name = name
 }
 func (m *Manager) DeleteStudent(id int) {
 	delete(m.students, id)
+	m.StudenNum--
 }
 func work() {
 	manager := Manager{
-		students: make(map[int]Student, 10),
+		students: make(map[int]*Student, 10),
 	}
 	for {
 		fmt.Print(`
@@ -163,6 +177,12 @@ func work() {
 			manager.DeleteStudent(id)
 		case 4:
 			os.Exit(1)
+		case 5:
+			fmt.Println("请输入学生的id和name")
+			var id int
+			var name string
+			fmt.Scanln(&id, &name)
+			manager.EditStudent(id, name)
 		default:
 			fmt.Println("请输入正确的数字")
 		}
