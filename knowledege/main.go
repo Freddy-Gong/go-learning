@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+//在Go语言程序执行时导入包语句会自动出发包内部init函数的调用。需要注意的是
+//init函数没有参数也没有返回值 init函数在程序运行时自动被调用执行 不能在代码中主动调用他
+func init() {
+	fmt.Println("我是自己执行的")
+}
+
+//包中执行时机 全局声明->init()->main() 并且会首先执行引入进的包的main函数
+
 //全局声明变量 可以不使用
 //但是局部变量必须使用
 //Go语言中推荐使用驼峰式命名规则
@@ -45,7 +53,7 @@ func main() {
 	fmt.Println(s3)
 	//同一个作用域中不能重复声明同名的变量
 	//匿名变量 _
-	knowledege.JSON_STRUCT()
+	knowledege.Dy()
 }
 
 //常量 定义之后就不能进行修改了 const
