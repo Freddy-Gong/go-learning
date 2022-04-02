@@ -1,14 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 	"sort"
 	"unicode"
 )
 
 func main() {
-	work()
+	InsertContent("./test.txt", "1", 3)
 }
 
 //打印9*9乘法表
@@ -187,4 +190,45 @@ func work() {
 			fmt.Println("请输入正确的数字")
 		}
 	}
+}
+
+//CopyFile拷贝文件
+func CopyFile(sourceName, targetName string) (err error) {
+	content, err := ioutil.ReadFile(sourceName)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(targetName, content, 0644)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func InsertContent(targetName, content string, line int) (err error) {
+	temp, linNum := "", 0
+	fileObj, err := os.Open(targetName)
+	reader := bufio.NewReader(fileObj)
+	for {
+		if linNum == line {
+			temp = temp + content + "\n"
+			linNum++
+			continue
+		}
+		line, err := reader.ReadString('\n') //按行读取
+		fmt.Println(line)
+		if err == io.EOF {
+			temp += line
+			linNum++
+			break
+		}
+		if err != nil {
+			fmt.Println("读文件过程中出错了")
+			return err
+		}
+		temp += line
+		linNum++
+	}
+	ioutil.WriteFile(targetName+"copy", []byte(temp), 777)
+	return
 }
