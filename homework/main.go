@@ -5,13 +5,34 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"learn/homework/logger"
 	"os"
 	"sort"
+	"time"
 	"unicode"
 )
 
 func main() {
-	InsertContent("./test.txt", "1", 3)
+	//不能通过代码直接创建目录 需要手动创建目录
+	log, err := logger.NewLogger("./catch/log.log", "file", "WARNING", 1024)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	id := 1
+	defer log.FileObj.Close()
+	for {
+		log.PrintAny("Debug", 2, "%d", id)
+		log.PrintAny("Trace", 2, "%d", id)
+		log.PrintAny("Info", 2, "%d", id)
+		log.PrintAny("Warning", 2, "%d", id)
+		log.PrintAny("Error", 2, "%d", id)
+		log.PrintAny("FATAL", 2, "%d", id)
+
+		time.Sleep(time.Second * 2)
+		id++
+	}
+
 }
 
 //打印9*9乘法表
@@ -216,7 +237,6 @@ func InsertContent(targetName, content string, line int) (err error) {
 			continue
 		}
 		line, err := reader.ReadString('\n') //按行读取
-		fmt.Println(line)
 		if err == io.EOF {
 			temp += line
 			linNum++
@@ -229,6 +249,11 @@ func InsertContent(targetName, content string, line int) (err error) {
 		temp += line
 		linNum++
 	}
-	ioutil.WriteFile(targetName+"copy", []byte(temp), 777)
+	fileObj.Close()
+	err = os.Remove(targetName)
+	if err != nil {
+		fmt.Println("文件删除失败")
+	}
+	ioutil.WriteFile(targetName, []byte(temp), 777)
 	return
 }
