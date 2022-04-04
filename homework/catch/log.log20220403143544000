@@ -1,0 +1,6 @@
+[2022-03-03 14:35:44] [Warning] [main.go:main.main:28] 1
+[2022-03-03 14:35:44] [Error] [main.go:main.main:29] 1
+[2022-03-03 14:35:44] [FATAL] [main.go:main.main:30] 1
+[2022-03-03 14:35:46] [Warning] [main.go:main.main:28] 2
+[2022-03-03 14:35:46] [Error] [main.go:main.main:29] 2
+[2022-03-03 14:35:46] [FATAL] [main.go:main.main:30] 2
