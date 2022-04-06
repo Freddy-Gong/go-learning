@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"learn/homework/iniparse"
+	"math/rand"
 	"os"
 	"sort"
+	"strconv"
+	"strings"
+	"time"
 	"unicode"
 )
 
@@ -31,7 +34,8 @@ func main() {
 	// 	time.Sleep(time.Second * 2)
 	// 	id++
 	// }
-	iniparse.Run("./iniparse/conf.ini")
+	//iniparse.Run("./iniparse/conf.ini")
+	pool()
 }
 
 //打印9*9乘法表
@@ -255,4 +259,50 @@ func InsertContent(targetName, content string, line int) (err error) {
 	}
 	ioutil.WriteFile(targetName, []byte(temp), 777)
 	return
+}
+
+/*
+使用goroutine和channel实现一个计算int64随机数各位数和的程序
+1. 开启一个gorountine循环生成int64类型的随机数 发送到jobchan
+2. 开启24个goroutine从jobChan中取出随机数计算各位数的和，将结果发送到resultChan
+3. 住goroutine从resultChan取出结果并打印到终端输出
+*/
+func generatRandom(job chan<- int64) {
+	for {
+		x := rand.Int63()
+		fmt.Println(x)
+		job <- x
+		time.Sleep(time.Second)
+	}
+}
+func worker(job <-chan int64, result chan<- int64) {
+	for i := range job {
+		re := calcul(i)
+		result <- re
+	}
+}
+func calcul(i int64) int64 {
+	var sum int64 = 0
+	str := strconv.FormatInt(i, 10)
+	strslice := strings.Split(str, "")
+	for _, s := range strslice {
+		num, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			fmt.Println(err)
+		}
+		sum += num
+	}
+	return sum
+}
+func pool() {
+	job := make(chan int64, 100)
+	result := make(chan int64, 100)
+	go generatRandom(job)
+	for i := 0; i < 24; i++ {
+		go worker(job, result)
+	}
+	for {
+		x := <-result
+		fmt.Println(x)
+	}
 }
