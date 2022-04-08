@@ -160,3 +160,71 @@ func ff1(ch1 chan<- int, ch2 <-chan int) {
 	//ch2 <- 100 这种操作是不允许的
 	<-ch2 //在该函数中ch2只能取值
 }
+
+//work pool(goroutine池)
+func worker(id int, jobs <-chan int, results chan<- int) {
+	for j := range jobs {
+		fmt.Printf("worker:%d start job:%d\n", id, j)
+		time.Sleep(time.Second)
+		fmt.Printf("worker:%d end job:%d\n", id, j)
+		results <- j * 2
+	}
+}
+func Pool() {
+	jobs := make(chan int, 100)
+	results := make(chan int, 100)
+	//开启三个goroutine 控制goroutine的数量
+	//在worker中让这三个goroutine循环使用
+	for w := 1; w <= 3; w++ {
+		go worker(w, jobs, results)
+	}
+	//五个任务
+	for j := 1; j <= 5; j++ {
+		jobs <- j
+	}
+	close(jobs)
+	close(results)
+	//输出结果
+	for a := range results {
+		fmt.Println(a)
+	}
+}
+
+//select
+//在某些场景下我们需要同时从多个通道接收数据。通道在接受数据时，如果没有数据可以接收将会发生阻塞。
+//你也许会使用便利的方式来实现：
+// for{
+// 	//尝试从ch1接收值
+// 	data,ok := <- ch1
+// 	//尝试从ch2接收值
+// 	data,ok:=<-ch2
+// }
+//这种方法虽然可以实现从多个通道接收值的需求，但性能很差。select可以同时响应
+//多个通道的操作。select会一直等待，直到某个case的通信操作完成时，就会执行
+//case分支对应的语句
+// select{
+// case <- ch1:
+// 		....
+// case data:=<-ch2:
+// 	...
+// case ch2<-data:
+// 	...
+// default:
+// 	....
+// }
+func selectt() {
+	//当这个通道的缓存量为1时 select中的两个case时交替运行的
+	//缓存量为10时 则随机执行
+	ch := make(chan int, 1)
+	for i := 0; i < 10; i++ {
+		select {
+		case x := <-ch:
+			fmt.Println(x)
+		case ch <- i:
+		}
+	}
+}
+
+//早并发运行时 需要一个结束信号 我们一般使用一个空结构体struct{}{}
+//发送任务的通道 发完这个就关闭
+//接收任务的通道 接收到这个值就关闭通道
