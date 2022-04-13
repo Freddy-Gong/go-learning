@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	knowledege "learn/knowledege/other"
 	"strings"
+
+	knowledege "learn/knowledege/other"
 )
 
 //在Go语言程序执行时导入包语句会自动出发包内部init函数的调用。需要注意的是
@@ -53,7 +54,7 @@ func main() {
 	fmt.Println(s3)
 	//同一个作用域中不能重复声明同名的变量
 	//匿名变量 _
-	knowledege.Server()
+	knowledege.Http_client()
 }
 
 //常量 定义之后就不能进行修改了 const
