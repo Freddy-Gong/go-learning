@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strings"
 )
 
 func process(id int, conn net.Conn) {
@@ -59,6 +60,8 @@ func Encode(msg string) ([]byte, error) {
 	length := int32(len(msg))
 	pkg := new(bytes.Buffer) //新建一个缓冲区
 	//写入消息头 binary以字节的形式进行操作
+	//binary.LittleEnddian 小端写入 倒着写
+	//binary.BigEnddian 打端写入 正着写
 	err := binary.Write(pkg, binary.LittleEndian, length)
 	if err != nil {
 		return nil, err
@@ -91,4 +94,30 @@ func Decode(reader *bufio.Reader) (string, error) {
 		return "", err
 	}
 	return string(pack[4:]), nil
+}
+
+//udp server端
+func UdpServer() {
+	conn, err := net.ListenUDP("udp", &net.UDPAddr{
+		IP:   net.IPv4(127, 0, 0, 1),
+		Port: 40000,
+	})
+	if err != nil {
+		fmt.Println("listen udp faile")
+		return
+	}
+	//udp就不需要建立连接了 直接收发数据
+	var data [1024]byte
+	for {
+		//接收消息的时候就可以得到发送端的地址了
+		n, addr, err := conn.ReadFromUDP(data[:])
+		if err != nil {
+			fmt.Println("read from udp err")
+			return
+		}
+		fmt.Println(data[:n])
+		//发送数据
+		replay := strings.ToUpper(string(data[:n]))
+		conn.WriteToUDP([]byte(replay), addr)
+	}
 }

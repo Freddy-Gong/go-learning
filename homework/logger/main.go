@@ -28,6 +28,7 @@ type Logger struct {
 	FileObj      *os.File
 	Level        LogLevel
 	MaxSize      int
+	LogChan      chan *string
 }
 
 func parseLevel(levelstr string) (LogLevel, error) {
@@ -52,6 +53,7 @@ func parseLevel(levelstr string) (LogLevel, error) {
 }
 
 func NewLogger(OutPutPath, OutPutMethod, Levelstr string, MaxSize int) (*Logger, error) {
+	LogChan := make(chan *string, 100)
 	var err error
 	var FileObj *os.File
 	if OutPutMethod != "stdout" && OutPutMethod != "file" {
@@ -68,13 +70,16 @@ func NewLogger(OutPutPath, OutPutMethod, Levelstr string, MaxSize int) (*Logger,
 	if err != nil {
 		panic(err) //这样就不用返回任何东西了
 	}
-	return &Logger{
+	result := Logger{
 		OutPutPath,
 		OutPutMethod,
 		FileObj,
 		Level,
 		MaxSize,
-	}, nil
+		LogChan,
+	}
+	go result.writeBack()
+	return &result, nil
 }
 
 func (l *Logger) FormaOutPut(level string, skip int, format string, a ...interface{}) {
@@ -98,7 +103,13 @@ func (l *Logger) FormaOutPut(level string, skip int, format string, a ...interfa
 			fmt.Printf("[%s] [%s] [%s:%s:%d] %s\n", now, level, fileName, funcName, line, msg)
 		} else {
 			l.CheckSlice()
-			fmt.Fprintf(l.FileObj, "[%s] [%s] [%s:%s:%d] %s\n", now, level, fileName, funcName, line, msg)
+			s := fmt.Sprintf("[%s] [%s] [%s:%s:%d] %s\n", now, level, fileName, funcName, line, msg)
+			select {
+			case l.LogChan <- &s:
+			default:
+			}
+
+			//fmt.Fprintf(l.FileObj, "[%s] [%s] [%s:%s:%d] %s\n", now, level, fileName, funcName, line, msg)
 		}
 	}
 }
@@ -120,4 +131,10 @@ func (l *Logger) CheckSlice() {
 
 func (l *Logger) PrintAny(level string, skip int, format string, a ...interface{}) {
 	l.FormaOutPut(level, skip, format, a...)
+}
+
+func (l *Logger) writeBack() {
+	for s := range l.LogChan {
+		fmt.Fprintf(l.FileObj, *s)
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"learn/homework/logger"
 	"math/rand"
 	"os"
 	"sort"
@@ -16,26 +17,26 @@ import (
 
 func main() {
 	//不能通过代码直接创建目录 需要手动创建目录
-	// log, err := logger.NewLogger("./catch/log.log", "file", "WARNING", 1024)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// id := 1
-	// defer log.FileObj.Close()
-	// for {
-	// 	log.PrintAny("Debug", 2, "%d", id)
-	// 	log.PrintAny("Trace", 2, "%d", id)
-	// 	log.PrintAny("Info", 2, "%d", id)
-	// 	log.PrintAny("Warning", 2, "%d", id)
-	// 	log.PrintAny("Error", 2, "%d", id)
-	// 	log.PrintAny("FATAL", 2, "%d", id)
-
+	log, err := logger.NewLogger("./catch/log.log", "file", "WARNING", 1024)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	id := 1
+	defer log.FileObj.Close()
+	for {
+		log.PrintAny("Debug", 2, "%d", id)
+		log.PrintAny("Trace", 2, "%d", id)
+		log.PrintAny("Info", 2, "%d", id)
+		log.PrintAny("Warning", 2, "%d", id)
+		log.PrintAny("Error", 2, "%d", id)
+		log.PrintAny("FATAL", 2, "%d", id)
+	}
 	// 	time.Sleep(time.Second * 2)
 	// 	id++
 	// }
 	//iniparse.Run("./iniparse/conf.ini")
-	pool()
+	//pool()
 }
 
 //打印9*9乘法表
