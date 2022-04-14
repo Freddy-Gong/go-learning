@@ -5,7 +5,8 @@ import (
 )
 
 func Splitstr(s, sep string) []string {
-	result := make([]string, 0)
+	//可以先配置容量 这样append就不会出错 ，如果直接申请长度会出现多余的0
+	result := make([]string, 0, strings.Count(s, sep)+1)
 	if sep == "" {
 		for _, v := range s {
 			result = append(result, string(v))
@@ -34,4 +35,11 @@ func Splitstr(s, sep string) []string {
 		return result
 	}
 	return nil
+}
+
+func Fib(n int) int {
+	if n < 2 {
+		return n
+	}
+	return Fib(n-1) + Fib(n-2)
 }

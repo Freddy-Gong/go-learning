@@ -62,3 +62,34 @@ func TestMap(t *testing.T) {
 //go test -run=TestMap/case2
 //测试覆盖率
 //go test -cover
+
+//性能基准测试
+func BenchmarkSplit(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Splitstr("qwdqevaqwda", "wd")
+	}
+}
+
+//go test -bench=Split
+//go test -bench=Split -benchmem
+
+//函数比较测试 统一函数执行不同的次数所需要的时间进行比较
+func benchmarkFib(b *testing.B, n int) {
+	for i := 0; i < b.N; i++ {
+		Fib(n)
+	}
+}
+func BenchmarkFib1(b *testing.B) {
+	benchmarkFib(b, 1)
+}
+func BenchmarkFib2(b *testing.B) {
+	benchmarkFib(b, 2)
+}
+func BenchmarkFib10(b *testing.B) {
+	benchmarkFib(b, 10)
+}
+func BenchmarkFib20(b *testing.B) {
+	benchmarkFib(b, 20)
+}
+
+// go test -bench=Fib2
