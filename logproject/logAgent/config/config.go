@@ -2,14 +2,20 @@ package config
 
 type AppConf struct {
 	KafakaConf `ini:"kafaka"`
-	TailogConf `ini:"tailog"`
+	EtcdConf   `ini:"tailog"`
+}
+
+type EtcdConf struct {
+	Address string `ini:"address"`
+	Timeout int    `ini:"timeout"`
+	Key     string `ini:"collect_log_key"`
 }
 
 type KafakaConf struct {
 	Address string `ini:"address"`
-	Topic   string `ini:"topic"`
 }
 
+//unused
 type TailogConf struct {
 	FileName string `ini:"filename"`
 }

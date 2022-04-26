@@ -3,6 +3,7 @@ package logagent
 import (
 	"fmt"
 	config "learn/logproject/logAgent/config"
+	"learn/logproject/logAgent/etcd"
 	"learn/logproject/logAgent/kafaka"
 	"learn/logproject/logAgent/tailog"
 	"time"
@@ -25,28 +26,28 @@ func main() {
 		return
 	}
 	fmt.Println("init kafaka success.")
-	//2.打开日志文件准备收集日志
-	err = tailog.Init(cfg.TailogConf.FileName)
+	//2.初始化etcd
+	err = etcd.Init(cfg.EtcdConf.Address, time.Duration(cfg.EtcdConf.Timeout)*time.Second)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	fmt.Println("init tailog success.")
-	run()
-}
-
-func run() {
-	// for line := range tailog.ReadChan() {
-	// 	kafaka.SendToKafaka("web_log", line.Text)
-	// }
-	//可以优化成下面的写法
-	for {
-		select {
-		//读取日志
-		case line := <-tailog.ReadChan():
-			//发送到kafaka
-			kafaka.SendToKafaka(cfg.KafakaConf.Topic, line.Text)
-		default:
-			time.Sleep(time.Second)
+	fmt.Println("init etcd success.")
+	//2.1 从etcd中拉取日志手机的配置信息
+	logentries, err := etcd.GetConf(cfg.EtcdConf.Key)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Get conf from etcd success.", logentries)
+	//2.2 派一个哨兵取件事日志收集的变化
+	//3. 收集日志发往kafka
+	//3.1 循环每一个日志收集项 创建TailObj
+	for _, logEntry := range logentries {
+		err = tailog.Register(logEntry)
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
 	}
 

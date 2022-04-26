@@ -2,15 +2,35 @@ package tailog
 
 import (
 	"fmt"
+	"learn/logproject/logAgent/etcd"
+	"learn/logproject/logAgent/kafaka"
+	"time"
 
 	"github.com/hpcloud/tail"
 )
 
-var (
-	tailObj *tail.Tail
-)
+type tailId int
+type tailTask struct {
+	path     string
+	topic    string
+	id       int
+	instance *tail.Tail
+}
 
-func Init(filePath string) (err error) {
+var tailMap = make(map[tailId]tailTask, 10)
+
+func Register(logEntry *etcd.LogEntry) (err error) {
+	var task tailTask
+	task.init(logEntry.Id, logEntry.Path, logEntry.Topic)
+	_, ok := tailMap[tailId(task.id)]
+	if !ok {
+		tailMap[tailId(task.id)] = task
+	} else {
+		return fmt.Errorf("id 重复")
+	}
+	return
+}
+func (t *tailTask) init(id int, path, topic string) {
 	config := tail.Config{
 		ReOpen:    true,
 		Follow:    true,
@@ -18,14 +38,30 @@ func Init(filePath string) (err error) {
 		MustExist: false,
 		Poll:      true,
 	}
-	tailObj, err = tail.TailFile(filePath, config)
+	tailObj, err := tail.TailFile(path, config)
 	if err != nil {
-		fmt.Println("tail file failed,err:", err)
 		return
 	}
-	return
+	t.id = id
+	t.path = path
+	t.topic = topic
+	t.instance = tailObj
+	go t.run()
 }
 
-func ReadChan() <-chan *tail.Line {
-	return tailObj.Lines
+func (t *tailTask) run() {
+	// for line := range tailog.ReadChan() {
+	// 	kafaka.SendToKafaka("web_log", line.Text)
+	// }
+	//可以优化成下面的写法
+	for {
+		select {
+		//读取日志
+		case line := <-t.instance.Lines:
+			//发送到kafaka
+			kafaka.SendToKafaka(t.topic, line.Text)
+		default:
+			time.Sleep(time.Second)
+		}
+	}
 }
