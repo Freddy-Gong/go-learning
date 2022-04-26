@@ -21,7 +21,7 @@ func main() {
 	// topic := cfg.Section("kafaka").Key("topic").String()
 	ini.MapTo(cfg, "./config/config.ini")
 	//1. 初始化kafaka连接
-	err := kafaka.Init([]string{cfg.KafakaConf.Address})
+	err := kafaka.Init([]string{cfg.KafakaConf.Address}, cfg.KafakaConf.Size)
 	if err != nil {
 		return
 	}
@@ -42,7 +42,6 @@ func main() {
 	fmt.Println("Get conf from etcd success.", logentries)
 	//2.2 派一个哨兵取件事日志收集的变化
 	//3. 收集日志发往kafka
-	//3.1 循环每一个日志收集项 创建TailObj
 	for _, logEntry := range logentries {
 		err = tailog.Register(logEntry)
 		if err != nil {

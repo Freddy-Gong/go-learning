@@ -30,6 +30,7 @@ func Register(logEntry *etcd.LogEntry) (err error) {
 	}
 	return
 }
+
 func (t *tailTask) init(id int, path, topic string) {
 	config := tail.Config{
 		ReOpen:    true,
@@ -59,7 +60,9 @@ func (t *tailTask) run() {
 		//读取日志
 		case line := <-t.instance.Lines:
 			//发送到kafaka
-			kafaka.SendToKafaka(t.topic, line.Text)
+			//需要等待下面kafaka运行完之后 才能再次for循环 如何实现异步呢？
+			//答：使用通道
+			kafaka.SendToChan(t.topic, line.Text)
 		default:
 			time.Sleep(time.Second)
 		}

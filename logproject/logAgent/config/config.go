@@ -13,6 +13,7 @@ type EtcdConf struct {
 
 type KafakaConf struct {
 	Address string `ini:"address"`
+	Size    int    `int:"chan_max_siz"`
 }
 
 //unused
