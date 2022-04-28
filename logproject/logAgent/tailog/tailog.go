@@ -1,6 +1,7 @@
 package tailog
 
 import (
+	"context"
 	"fmt"
 	"learn/logproject/logAgent/etcd"
 	"learn/logproject/logAgent/kafaka"
@@ -15,16 +16,19 @@ type tailTask struct {
 	topic    string
 	id       int
 	instance *tail.Tail
+	//为了能够停止goroutine
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 type tailLogMgr struct {
 	logEntry    *[]*etcd.LogEntry
-	taskMap     *map[tailId]*tailTask
+	taskMap     map[tailId]*tailTask
 	newConfChan chan []*etcd.LogEntry
 }
 
 var tailMgr = tailLogMgr{
 	logEntry:    &logentries,
-	taskMap:     &tailMap,
+	taskMap:     tailMap,
 	newConfChan: make(chan []*etcd.LogEntry, 0),
 }
 var tailMap = make(map[tailId]*tailTask, 10)
@@ -55,10 +59,13 @@ func (t *tailTask) init(id int, path, topic string) {
 	if err != nil {
 		return
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	t.id = id
 	t.path = path
 	t.topic = topic
 	t.instance = tailObj
+	t.ctx = ctx
+	t.cancel = cancel
 	go t.run()
 }
 
@@ -75,6 +82,9 @@ func (t *tailTask) run() {
 			//需要等待下面kafaka运行完之后 才能再次for循环 如何实现异步呢？
 			//答：使用通道
 			kafaka.SendToChan(t.topic, line.Text)
+		case <-t.ctx.Done():
+			fmt.Println("tailtask 退出了")
+			return
 		default:
 			time.Sleep(time.Second)
 		}
@@ -85,8 +95,23 @@ func (t *tailTask) run() {
 
 func (t *tailLogMgr) run() {
 	for newConf := range t.newConfChan {
+		for _, conf := range newConf {
+			v, ok := t.taskMap[tailId(conf.Id)]
+			if ok {
+				if v.path == conf.Path && v.topic == conf.Topic {
+					continue
+				} else {
+					v.path = conf.Path
+					v.topic = conf.Topic
+				}
+				//如果存在id应该进行对比
+			} else {
+				//不存在就新增
+				Register(conf)
+			}
+		}
 		//1. 配置新增
-		//2. 配置删除
+		//2. 配置删除 如果发现有删除操作 则就操作t.cancel就可以关掉了
 		//3. 配置变更
 		fmt.Println(newConf)
 	}

@@ -6,6 +6,7 @@ import (
 	"learn/logproject/logAgent/etcd"
 	"learn/logproject/logAgent/kafaka"
 	"learn/logproject/logAgent/tailog"
+	"learn/logproject/logAgent/util"
 	"sync"
 	"time"
 
@@ -36,7 +37,13 @@ func main() {
 	}
 	fmt.Println("init etcd success.")
 	//2.1 从etcd中拉取日志手机的配置信息
-	logentries, err := etcd.GetConf(cfg.EtcdConf.Key)
+	//为了实现每一个logagent都拉取自己独有的配置，所以要以自己的IP地址作为区分
+	ipstr, err := util.GetOutboundIp()
+	if err != nil {
+		panic(err)
+	}
+	etcdConfKey := fmt.Sprintf(cfg.EtcdConf.Key, ipstr)
+	logentries, err := etcd.GetConf(etcdConfKey)
 	if err != nil {
 		fmt.Println(err)
 		return
