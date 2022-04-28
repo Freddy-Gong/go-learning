@@ -16,15 +16,27 @@ type tailTask struct {
 	id       int
 	instance *tail.Tail
 }
+type tailLogMgr struct {
+	logEntry    *[]*etcd.LogEntry
+	taskMap     *map[tailId]*tailTask
+	newConfChan chan []*etcd.LogEntry
+}
 
-var tailMap = make(map[tailId]tailTask, 10)
+var tailMgr = tailLogMgr{
+	logEntry:    &logentries,
+	taskMap:     &tailMap,
+	newConfChan: make(chan []*etcd.LogEntry, 0),
+}
+var tailMap = make(map[tailId]*tailTask, 10)
+var logentries = make([]*etcd.LogEntry, 0, 10)
 
 func Register(logEntry *etcd.LogEntry) (err error) {
+	logentries = append(logentries, logEntry)
 	var task tailTask
 	task.init(logEntry.Id, logEntry.Path, logEntry.Topic)
 	_, ok := tailMap[tailId(task.id)]
 	if !ok {
-		tailMap[tailId(task.id)] = task
+		tailMap[tailId(task.id)] = &task
 	} else {
 		return fmt.Errorf("id 重复")
 	}
@@ -67,4 +79,20 @@ func (t *tailTask) run() {
 			time.Sleep(time.Second)
 		}
 	}
+}
+
+//监听自己的newConfChan 有了新的配置过来就做对应的处理
+
+func (t *tailLogMgr) run() {
+	for newConf := range t.newConfChan {
+		//1. 配置新增
+		//2. 配置删除
+		//3. 配置变更
+		fmt.Println(newConf)
+	}
+}
+
+//向外暴露一个函数，把newConfChan暴露出去
+func NewConfChan() chan<- []*etcd.LogEntry {
+	return tailMgr.newConfChan
 }

@@ -6,12 +6,14 @@ import (
 	"learn/logproject/logAgent/etcd"
 	"learn/logproject/logAgent/kafaka"
 	"learn/logproject/logAgent/tailog"
+	"sync"
 	"time"
 
 	"gopkg.in/ini.v1"
 )
 
 var cfg = new(config.AppConf) //new函数返回的是指针
+var wg sync.WaitGroup
 
 func main() {
 	//0. 加载配置文件
@@ -40,7 +42,6 @@ func main() {
 		return
 	}
 	fmt.Println("Get conf from etcd success.", logentries)
-	//2.2 派一个哨兵取件事日志收集的变化
 	//3. 收集日志发往kafka
 	for _, logEntry := range logentries {
 		err = tailog.Register(logEntry)
@@ -49,5 +50,9 @@ func main() {
 			return
 		}
 	}
-
+	//派一个哨兵取件事日志收集的变化
+	newConfChan := tailog.NewConfChan()
+	wg.Add(1)                                        //从tailog中获取对外暴露的通道
+	go etcd.WatchConf(cfg.EtcdConf.Key, newConfChan) //哨兵发现最新的配置信息 会通知上面的通道
+	wg.Wait()
 }
